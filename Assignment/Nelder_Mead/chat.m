@@ -5,7 +5,7 @@ function [f_values] = chat()
     close all;
 
     % Inizializzazione del simplex
-    simplex = [1 0; 0 1]; % Tre vertici iniziali
+    simplex = [-2,1;1 2; 0 1]; % Tre vertici iniziali
     max_iter = 100; % Numero massimo di iterazioni
     tol = 1e-5; % Tolleranza
     k = 0; % Contatore delle iterazioni
