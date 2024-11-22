@@ -3,4 +3,4 @@ This is the offical repository of the Numerical optimization for large scale pro
 Students:
 - Giorgio Bono
 - Claudio Camolese s344788@studenti.polito.it
-- Andrea Di Felice 
+- Andrea Di Felice s337517@studenti.polito.it
