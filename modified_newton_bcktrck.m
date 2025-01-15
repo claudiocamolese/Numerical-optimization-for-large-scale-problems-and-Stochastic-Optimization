@@ -31,7 +31,7 @@ while k < kmax && gradfk_norm >= tolgrad
     % Ensure positive definiteness: compute tau_k
     lambda_min = min(eig(Hk));  % Minimum eigenvalue of the Hessian
     if lambda_min <= 0
-        tau_k = delta - lambda_min;  % Correction to make Bk positive definite
+        tau_k = max(0, delta - lambda_min);  % Correction to make Bk positive definite
         Bk = Hk + tau_k * eye(length(x0));
     else
         Bk = Hk;

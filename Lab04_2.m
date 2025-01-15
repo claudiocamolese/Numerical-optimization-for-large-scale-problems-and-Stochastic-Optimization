@@ -4,7 +4,7 @@ clear
 close all
 clc
 
-load('test_functions2.mat')
+load('Assignment\Truncated_NM\test_functions2.mat')
 delta = 1e-4;
 
 
