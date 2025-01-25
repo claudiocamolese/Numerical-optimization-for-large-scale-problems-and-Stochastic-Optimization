@@ -3,6 +3,7 @@ import gurobipy as gp
 from gurobipy import GRB
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.optimize import maximize
 
 ##  Esempio di applicazione
 #   brand fashion
@@ -22,11 +23,12 @@ Gij = np.array([[1,1,0],[1,1,1]])
 
 # scenari
 a = 4
-b = 0 # dipende dalla clientela: attenti al prezzo: b a valore assoluto piccolo, prodotti di prima necessita: b a valore assoluto alto
+# b = 0 # dipende dalla clientela: attenti al prezzo: b a valore assoluto piccolo, prodotti di prima necessita: b a valore assoluto alto
 np.random.seed(1)
 n_scenarios = 100
 prob = 1/n_scenarios
-demand = a - b*P.reshape((-1,1)) + np.random.uniform(low=0, high=2, size=(len(J), n_scenarios))
+demand = np.round(np.clip(np.random.normal(loc=a, scale=2, size=len(J)*n_scenarios), a_min=0, a_max=np.inf).reshape((len(J), n_scenarios))) # domanda indipende dal prezzo
+print(demand)
 
 # Create a new model
 model = gp.Model("fashon")
