@@ -26,7 +26,7 @@ class ATO():
         self.n_scenarios = 100
         self.prob = 1/self.n_scenarios
         
-        self.distr_mean = 3
+        self.distr_mean = 1
         self.distr_std = 1
         self.demand_distr = lambda: np.round(
             np.clip(

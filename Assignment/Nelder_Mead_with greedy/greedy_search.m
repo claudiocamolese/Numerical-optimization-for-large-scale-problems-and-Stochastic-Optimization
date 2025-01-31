@@ -18,7 +18,7 @@ function [xk,execution_time,best_rho, best_chi, best_gamma, best_sigma, best_f] 
             for gamma = gamma_values
                 for sigma = sigma_values
                     % Esegui l'algoritmo Nelder-Mead con i parametri correnti
-                    [xk, fk, execution_time] = nelder(x, n, rho, chi, gamma, sigma);
+                    [xk, fk, execution_time, iter] = nelder(x, n, rho, chi, gamma, sigma);
 
                     % Se la funzione obiettivo corrente è migliore, aggiorna i parametri
                     if fk < best_f
@@ -42,4 +42,5 @@ function [xk,execution_time,best_rho, best_chi, best_gamma, best_sigma, best_f] 
     disp(['Best gamma: ', num2str(best_gamma)]);
     disp(['Best sigma: ', num2str(best_sigma)]);
     disp(['Best objective function value: ', num2str(best_f)]);
+    disp(iter)
 end

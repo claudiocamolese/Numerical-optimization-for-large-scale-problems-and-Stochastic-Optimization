@@ -5,7 +5,13 @@ clear
 rng(337517)
 
 % Array di dimensioni da testare
-dimensions=[50];
+dimensions=[10, 25, 50];
+
+rho = [0.9,1,1];
+chi = [1.6,1.1,1.1];
+gamma = [0.4,0.7,0.7];
+sigma = [0.6,0.6,0.6];
+
 execution_times = zeros(1, length(dimensions));
 k=1;
 
@@ -25,11 +31,14 @@ for n=dimensions
 %         
 %         fprintf("Time: %.4f s, f(x): %.4f\n", time, fk);
 %         
-        [xk,execution_time,best_rho, best_chi, best_gamma, best_sigma, best_f] = greedy_search(point, n);
+        % [xk,execution_time,best_rho, best_chi, best_gamma, best_sigma, best_f] = greedy_search(point, n);
+        [xk, fk, execution_time, iter] = nelder(point, n, rho(k), chi(k), gamma(k), sigma(k));
         execution_times(k) = execution_time;
-        k=k+1;
-  
-    end    
+        disp(['Best objective function value: ', num2str(fk)]);
+        disp(['Number of iterations: ', num2str(iter)]);
+        disp(xk);
+    end
+    k=k+1;
 end
 
 % Grafico dei tempi

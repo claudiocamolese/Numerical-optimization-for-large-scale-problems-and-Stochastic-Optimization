@@ -1,7 +1,9 @@
-function [xk, fk,execution_time] = nelder(x,n, rho, chi, gamma, sigma)
+function [xk, fk, execution_time, k] = nelder(x,n, rho, chi, gamma, sigma)
     
   % Funzione obiettivo da minimizzare (modificabile a piacere)
-    f = @(x) sum(100 * (x(:, 2:end) - x(:, 1:end-1).^2).^2 + (1 - x(:, 1:end-1)).^2, 2); % Rosenbrock
+    % f = @(x) sum(100 * (x(:, 2:end) - x(:, 1:end-1).^2).^2 + (1 - x(:, 1:end-1)).^2, 2); % Rosenbrock
+    % f = @(x) singular_broyden(x);
+    f = @(x) extended_rosenbrock(x);
     
     if n==2
         figure
@@ -21,7 +23,7 @@ function [xk, fk,execution_time] = nelder(x,n, rho, chi, gamma, sigma)
   
 
     % Parametri
-    max_iter = 10000; % Numero massimo di iterazioni
+    max_iter = 1000000; % Numero massimo di iterazioni
     tol = 1e-5;      % Tolleranza
 %     rho = 1;         % Coefficiente di riflessione
 %     chi = 2;         % Coefficiente di espansione
