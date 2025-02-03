@@ -1,18 +1,20 @@
-function [xk, fk, execution_time, k] = nelder(x,n, rho, chi, gamma, sigma)
+function [xk, fk, execution_time, k] = nelder(x, n, rho, chi, gamma, sigma)
     
   % Funzione obiettivo da minimizzare (modificabile a piacere)
     % f = @(x) sum(100 * (x(:, 2:end) - x(:, 1:end-1).^2).^2 + (1 - x(:, 1:end-1)).^2, 2); % Rosenbrock
-    % f = @(x) singular_broyden(x);
-    f = @(x) extended_rosenbrock(x);
-    
+    % f = @(x) extended_rosenbrock(x);
+    f = @(x) extendedFreudensteinRoth(x);
+    % f = @(x) brent_function(x);
+
     if n==2
         figure
         hold on
-        fcontour(@(x, y) (1 - x).^2 + 100 * (y - x.^2).^2, [-2, 2, -1, 3], 'LineWidth', 1.2); % Plotta le linee di livello
+        fcontour(@(x, y) (3 - 2 * x) * x - 2 * y + 1, [-6, 6, -5, 5], 'LineWidth', 1.2); % Plotta le linee di livello
         colormap jet;
         title('Nelder-Mead Method');
         xlabel('x_1');
         ylabel('x_2');
+        hold off
     end
     
     % Controllo della dimensione
@@ -24,7 +26,7 @@ function [xk, fk, execution_time, k] = nelder(x,n, rho, chi, gamma, sigma)
 
     % Parametri
     max_iter = 1000000; % Numero massimo di iterazioni
-    tol = 1e-5;      % Tolleranza
+    tol = 1e-8;      % Tolleranza
 %     rho = 1;         % Coefficiente di riflessione
 %     chi = 2;         % Coefficiente di espansione
 %     gamma = 0.5;     % Coefficiente di contrazione

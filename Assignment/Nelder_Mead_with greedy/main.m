@@ -7,9 +7,9 @@ rng(337517)
 % Array di dimensioni da testare
 dimensions=[10, 25, 50];
 
-rho = [0.9,1,1];
-chi = [1.6,1.1,1.1];
-gamma = [0.4,0.7,0.7];
+rho = [1,1,1];
+chi = [1.1,1.1,1.1];
+gamma = [0.7,0.7,0.7];
 sigma = [0.6,0.6,0.6];
 
 execution_times = zeros(1, length(dimensions));
@@ -21,9 +21,11 @@ for n=dimensions
     fprintf("Dimensione n=%g\n",n)
     disp("-----------------")
 
-    points= new_points(-1.2,1,n);    
+    % points = new_points(-1.2,1,n);
+    % points = new_points(90,60,n);
+    points = new_points(10,10,n);
     
-    for j= 1:size(points,1)%da 1 a 10
+    for j= 1:size(points,1) % da 1 a 10
 
         point=points(j,:);
       

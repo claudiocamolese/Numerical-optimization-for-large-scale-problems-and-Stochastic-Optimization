@@ -1,9 +1,9 @@
 function [xk,execution_time,best_rho, best_chi, best_gamma, best_sigma, best_f] = greedy_search(x, n)
     % Definizione dei valori da esplorare per ogni parametro
     rho_values = [1.0,1.1,1.2];  % Prova diversi valori per rho
-    chi_values = [2,2.1,2.2,2.5];      % Prova diversi valori per chi
-    gamma_values = [0.8,0.9]; % Prova diversi valori per gamma
-    sigma_values = [1,1.1]; % Prova diversi valori per sigma
+    chi_values = [1,1.1,1.2,1.3,1.4,1.5,1.6];      % Prova diversi valori per chi
+    gamma_values = [0.4,0.5,0.6,0.7,0.8,0.9]; % Prova diversi valori per gamma
+    sigma_values = [0.5,0.6,0.7]; % Prova diversi valori per sigma
 
     best_f = inf; % Funzione obiettivo iniziale, parte da un valore molto alto
     best_rho = rho_values(1);
