@@ -15,7 +15,7 @@ class ATO():
         self.J = ['Felpa', 'Jeans']
         self.M = ['M1']
         self.C = np.array([5, 3, 2])
-        self.Lm = np.array([8])
+        self.Lm = np.array([24])
         self.Tim = np.array([[0.5, 1.33, 0.14]])
         self.Gij = np.array([[1,1,0],[1,1,1]])
         
@@ -28,15 +28,13 @@ class ATO():
         
         self.distr_mean = 1
         self.distr_std = 1
-        self.demand_distr = lambda: np.round(
-            np.clip(
-                np.random.normal(
+        
+        self.a = 5
+        self.b = 0.04
+        self.eps = np.random.normal(
                     loc=self.distr_mean,
                     scale=self.distr_std,
-                    size=self.n_products*self.n_scenarios),
-                a_min=0,
-                a_max=np.inf).reshape((self.n_products, self.n_scenarios)))
-        
+                    size=(self.n_products, self.n_scenarios))
         
         self.model = gp.Model("ATO")
         
@@ -69,9 +67,19 @@ class ATO():
             name="feasible_space_on_x"
         )
     
+    def demandDistribution(self, P):
+        Prices = np.array(P).reshape(-1, 1)
+        self.demand_distr = np.round(
+        np.clip(
+            self.a - self.b * Prices + self.eps,
+            a_min=0,
+            a_max=np.inf))
+        return self.demand_distr
+    
+    
     def run_simulation(self, P, seed=None):
         np.random.seed(seed)
-        demand = self.demand_distr()
+        demand = self.demandDistribution(P)
         
         # Constraint 2: 
         self.model.addConstrs(
@@ -97,19 +105,18 @@ class ATO():
             return self.model.ObjVal
         return np.nan
     
-    
-    
+
 ato = ATO()
 
 n_products = 2
 n_reps = 3
 
-P = np.array([[30, 50], [40, 60]])
+P = np.array([[30.0, 50.0], [40.0, 60.0]])
 
-dict_res = {(s,d): {} for s in range(P[0][0], P[0][1]+1) for d in range(P[1][0], P[1][1]+1)}
+dict_res = {(s,d): {} for s in range(int(P[0][0]), int(P[0][1])+1) for d in range(int(P[1][0]), int(P[1][1])+1)}
 
-for p1 in range(P[0][0], P[0][1]+1):
-    for p2 in range(P[1][0], P[1][1]+1):
+for p1 in range(int(P[0][0]), int(P[0][1])+1):
+    for p2 in range(int(P[1][0]), int(P[1][1])+1):
         tmp = np.zeros(n_reps)
         for i in range(n_reps):
             tmp[i] = ato.run_simulation([p1, p2], seed=i)
@@ -178,7 +185,7 @@ else:
 
 # Create mesh grid for x1 and x2 for surface visualization
 x1_vals = np.linspace(P[0][0], P[0][1], 100)
-x2_vals = np.linspace(P[0][0], P[0][1], 100)
+x2_vals = np.linspace(P[1][0], P[1][1], 100)
 x1_grid, x2_grid = np.meshgrid(x1_vals, x2_vals)
 
 # Compute the response values for the mesh grid

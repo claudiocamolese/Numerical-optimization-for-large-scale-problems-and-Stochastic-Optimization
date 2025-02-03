@@ -22,8 +22,8 @@ for n=dimensions
     disp("-----------------")
 
     % points = new_points(-1.2,1,n);
-    % points = new_points(90,60,n);
-    points = new_points(10,10,n);
+    points = new_points(90,60,n);
+    % points = new_points(10,10,n);
     
     for j= 1:size(points,1) % da 1 a 10
 
