@@ -16,8 +16,8 @@ class ATO():
         self.M = ['M1']
         self.C = np.array([5, 3, 2])
         self.Lm = np.array([24])
-        self.Tim = np.array([[0.5, 1.33, 0.14]])
-        self.Gij = np.array([[1,1,0],[1,1,1]])
+        self.Tim = np.array([[0.5, 1.33, 1.9]])
+        self.Gij = np.array([[1,1,0], [1,1,1]])
         
         self.n_items = len(self.I)
         self.n_products = len(self.J)
@@ -71,7 +71,7 @@ class ATO():
         Prices = np.array(P).reshape(-1, 1)
         self.demand_distr = np.round(
         np.clip(
-            self.a - self.b * Prices + self.eps,
+            200 / Prices + self.eps,
             a_min=0,
             a_max=np.inf))
         return self.demand_distr
@@ -184,12 +184,13 @@ else:
 # Optimize metamodel
 
 # Create mesh grid for x1 and x2 for surface visualization
-x1_vals = np.linspace(P[0][0], P[0][1], 100)
-x2_vals = np.linspace(P[1][0], P[1][1], 100)
+x1_vals = np.linspace(-1, 1, 100)
+x2_vals = np.linspace(-1, 1, 100)
 x1_grid, x2_grid = np.meshgrid(x1_vals, x2_vals)
 
 # Compute the response values for the mesh grid
 z_vals = response_function(x1_grid, x2_grid)
+print(np.max(z_vals))
 
 # Create a 3D plot for the response surface
 fig = plt.figure(figsize=(10, 6))
@@ -212,19 +213,21 @@ plt.show()
 
 # Optimization: Find the optimal values for x1 and x2
 def objective_function(x):
-    return response_function(x[0], x[1])
+    return -response_function(x[0], x[1])
 
 # Initial guess for optimization
-initial_guess = [x1_grad_0, x2_grad_0]
+initial_guess = [0, 0]
 
 # Perform optimization
-bnds = ((x1_grad_0 - 2, x1_grad_0 + 2), (x1_grad_0 - 2, x1_grad_0 + 2))
+bnds = ((-1, 1), (-1,1))
 result = minimize(objective_function, initial_guess, bounds=bnds)
 
 # Display the optimal solution
 optimal_x1, optimal_x2 = result.x
 optimal_response = response_function(optimal_x1, optimal_x2)
 
-print(f"Optimal s: {optimal_x1}")
-print(f"Optimal d: {optimal_x2}")
+optimalp1 = scaler.inverse_transform(np.array([[optimal_x1, optimal_x2, optimal_x1 * optimal_x2, optimal_x1*2, optimal_x2*2]]))
+
+print(f"Optimal s: {optimalp1[0,0]}")
+print(f"Optimal d: {optimalp1[0,1]}")
 print(f"Optimal response: {optimal_response}")
