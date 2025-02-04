@@ -9,12 +9,12 @@ from mpl_toolkits.mplot3d import Axes3D
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.linear_model import LinearRegression
 
-class ATO():
+class SurfaceResponse():
     def __init__(self):
         self.I = ['Stoffa', 'Cerniera', 'Bottone']
         self.J = ['Felpa', 'Jeans']
         self.M = ['M1']
-        self.C = np.array([5, 3, 2])
+        self.C = np.array([7, 5, 8])
         self.Lm = np.array([24])
         self.Tim = np.array([[0.5, 1.33, 1.9]])
         self.Gij = np.array([[1,1,0], [1,1,1]])
@@ -27,14 +27,108 @@ class ATO():
         self.prob = 1/self.n_scenarios
         
         self.distr_mean = 1
-        self.distr_std = 1
+        self.distr_std = 2
         
-        self.a = 5
-        self.b = 0.04
+        self.a = np.array([[5], [4]])
+        self.b = np.array([[0.1], [0.08]])
+        
+        self.model = gp.Model("SurfaceResponse")
+        
+        self.model.setParam('OutputFlag', 0)
+
+        self.x = self.model.addVars(self.n_items, vtype=GRB.INTEGER, name="x")
+        self.y = self.model.addVars(self.n_products, self.n_scenarios, vtype=GRB.INTEGER, name="y")
+
+        # Constraint 1: 
+        self.model.addConstrs(
+            (gp.quicksum(self.Tim[m, i] * self.x[i] for i in range(self.n_items)) <= self.Lm[m] for m in range(self.n_machines)), 
+            name="production_capacity_constraint"
+        )
+
+        # Constraint 3: 
+        self.model.addConstrs(
+            (gp.quicksum(self.Gij[j, i] * self.y[j, s] for j in range(self.n_products)) <= self.x[i] for i in range(self.n_items) for s in range(self.n_scenarios)), 
+            name="constraint_on_amount_of_components"
+        )
+
+        # Constraint 4: 
+        self.model.addConstrs(
+            (self.y[j, s] >= 0 for j in range(self.n_products) for s in range(self.n_scenarios)), 
+            name="feasible_space_on_y"
+        )
+
+        # Constraint 5: 
+        self.model.addConstrs(
+            (self.x[i] >= 0 for i in range(self.n_items)), 
+            name="feasible_space_on_x"
+        )
+    
+    def demandDistribution(self, P, seed=None):
+        np.random.seed(seed)
+        Prices = np.array(P).reshape(-1, 1)
+        
         self.eps = np.random.normal(
                     loc=self.distr_mean,
                     scale=self.distr_std,
                     size=(self.n_products, self.n_scenarios))
+        
+        self.demand_distr = np.round(
+        np.clip(
+            self.a - self.b * Prices + self.eps,
+            a_min=0,
+            a_max=np.inf))
+        return self.demand_distr
+    
+    
+    def run_simulation(self, P, seed=None):
+        np.random.seed(seed)
+        demand = self.demandDistribution(P, seed)
+        
+        # Constraint 2: 
+        self.model.addConstrs(
+            (self.y[j, s] <= demand[j, s] for j in range(self.n_products) for s in range(self.n_scenarios)), 
+            name="constraint_on_demand"
+        )
+        
+        # Objective function: minimize fixed costs + transportation costs
+        self.model.setObjective(
+            - gp.quicksum(self.C[i] * self.x[i] for i in range(self.n_items))
+            + self.prob * gp.quicksum(P[j] * self.y[j, s] for j in range(self.n_products) for s in range(self.n_scenarios)),
+            GRB.MAXIMIZE
+        )
+    
+        self.model.optimize()
+
+        if self.model.status == GRB.OPTIMAL:
+            # print("\nOptimal Solution Found:")
+            # print(self.x)
+            # for v in self.model.getVars():
+            #     print(f'{v.varName} = {v.x}')
+            # print(self.model.ObjVal)
+            return self.model.ObjVal
+        return np.nan
+    
+    
+    
+class ATO():
+    def __init__(self):
+        self.I = ['Stoffa', 'Cerniera', 'Bottone']
+        self.J = ['Felpa', 'Jeans']
+        self.M = ['M1']
+        self.C = np.array([7, 5, 8])
+        self.Lm = np.array([24])
+        self.Tim = np.array([[0.5, 1.33, 1.9]])
+        self.Gij = np.array([[1,1,0], [1,1,1]])
+        
+        self.n_items = len(self.I)
+        self.n_products = len(self.J)
+        self.n_machines = len(self.M)
+        
+        self.n_scenarios = 100
+        self.prob = 1/self.n_scenarios
+        
+        self.distr_mean = 4
+        self.distr_std = 2
         
         self.model = gp.Model("ATO")
         
@@ -67,11 +161,14 @@ class ATO():
             name="feasible_space_on_x"
         )
     
-    def demandDistribution(self, P):
-        Prices = np.array(P).reshape(-1, 1)
+    def demandDistribution(self, seed=None):
+        np.random.seed(seed)
+        
         self.demand_distr = np.round(
-        np.clip(
-            200 / Prices + self.eps,
+        np.clip(np.random.normal(
+                    loc=self.distr_mean,
+                    scale=self.distr_std,
+                    size=(self.n_products, self.n_scenarios)),
             a_min=0,
             a_max=np.inf))
         return self.demand_distr
@@ -79,7 +176,7 @@ class ATO():
     
     def run_simulation(self, P, seed=None):
         np.random.seed(seed)
-        demand = self.demandDistribution(P)
+        demand = self.demandDistribution(seed)
         
         # Constraint 2: 
         self.model.addConstrs(
@@ -97,16 +194,16 @@ class ATO():
         self.model.optimize()
 
         if self.model.status == GRB.OPTIMAL:
-            # print("\nOptimal Solution Found:")
-            # print(self.x)
-            # for v in self.model.getVars():
-            #     print(f'{v.varName} = {v.x}')
-            # print(self.model.ObjVal)
+            print("\nOptimal Solution Found:")
+            print(self.x)
+            for v in self.model.getVars():
+                print(f'{v.varName} = {v.x}')
+            print(self.model.ObjVal)
             return self.model.ObjVal
         return np.nan
     
-
-ato = ATO()
+    
+sr = SurfaceResponse()
 
 n_products = 2
 n_reps = 3
@@ -119,7 +216,7 @@ for p1 in range(int(P[0][0]), int(P[0][1])+1):
     for p2 in range(int(P[1][0]), int(P[1][1])+1):
         tmp = np.zeros(n_reps)
         for i in range(n_reps):
-            tmp[i] = ato.run_simulation([p1, p2], seed=i)
+            tmp[i] = sr.run_simulation([p1, p2], seed=i)
             
         dict_res[p1, p2] = np.average(tmp)
 
@@ -192,25 +289,6 @@ x1_grid, x2_grid = np.meshgrid(x1_vals, x2_vals)
 z_vals = response_function(x1_grid, x2_grid)
 print(np.max(z_vals))
 
-# Create a 3D plot for the response surface
-fig = plt.figure(figsize=(10, 6))
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(x1_grid, x2_grid, z_vals, cmap='viridis', edgecolor='none')
-ax.set_title("Response Surface")
-ax.set_xlabel("x1")
-ax.set_ylabel("x2")
-ax.set_zlabel("Response f(x1, x2)")
-plt.show()
-
-# Create a contour plot
-plt.figure(figsize=(8, 6))
-contour = plt.contourf(x1_grid, x2_grid, z_vals, cmap='viridis', levels=50)
-plt.colorbar(contour)
-plt.title("Contour Plot of the Response Surface")
-plt.xlabel("x1")
-plt.ylabel("x2")
-plt.show()
-
 # Optimization: Find the optimal values for x1 and x2
 def objective_function(x):
     return -response_function(x[0], x[1])
@@ -231,3 +309,36 @@ optimalp1 = scaler.inverse_transform(np.array([[optimal_x1, optimal_x2, optimal_
 print(f"Optimal s: {optimalp1[0,0]}")
 print(f"Optimal d: {optimalp1[0,1]}")
 print(f"Optimal response: {optimal_response}")
+
+
+# Create a 3D plot for the response surface
+fig = plt.figure(figsize=(10, 6))
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(x1_grid, x2_grid, z_vals, cmap='viridis', edgecolor='none')
+ax.set_title("Response Surface")
+ax.set_xlabel("x1")
+ax.set_ylabel("x2")
+ax.set_zlabel("Response f(x1, x2)")
+plt.show()
+
+# Create a contour plot
+plt.figure(figsize=(8, 6))
+contour = plt.contourf(x1_grid, x2_grid, z_vals, cmap='viridis', levels=50)
+plt.colorbar(contour)
+plt.title("Contour Plot of the Response Surface")
+plt.xlabel("x1")
+plt.ylabel("x2")
+plt.show()
+
+
+
+ato = ATO()
+ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=337517)
+
+
+# Stability
+# while(stopping criteria)
+#   ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=344788)
+#   if not stopping criteria
+#       ato.addScenarios()
+#       ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=337517)
