@@ -8,6 +8,7 @@ from scipy.optimize import minimize
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.linear_model import LinearRegression
+import time
 
 class SurfaceResponse():
     def __init__(self):
@@ -15,7 +16,7 @@ class SurfaceResponse():
         self.J = ['Felpa', 'Jeans']
         self.M = ['M1']
         self.C = np.array([11, 14, 10])
-        self.Lm = np.array([1000])
+        self.Lm = np.array([30])
         self.Tim = np.array([[0.5, 1.33, 1.9]])
         self.Gij = np.array([[1,1,0], [1,1,1]])
         
@@ -28,7 +29,7 @@ class SurfaceResponse():
         self.n_scenarios = 100
         self.prob = 1/self.n_scenarios
         
-        self.distr_mean = 1
+        self.distr_mean = 0
         self.distr_std = 1
         
         self.a = np.array([[23.5], [28.0]])
@@ -214,6 +215,10 @@ class ATO():
         return np.nan
     
     
+    
+# Inizio del conteggio del tempo
+start_time = time.time()    
+
 sr = SurfaceResponse()
 
 n_products = 2
@@ -364,3 +369,10 @@ plt.show()
 #   if not stopping criteria
 #       ato.addScenarios()
 #       ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=337517)
+
+# Fine del conteggio del tempo
+end_time = time.time()
+
+# Calcolare la durata
+execution_time = end_time - start_time
+print(f"Tempo di esecuzione: {execution_time} secondi")
