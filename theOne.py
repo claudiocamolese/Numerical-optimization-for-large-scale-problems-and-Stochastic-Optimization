@@ -136,11 +136,11 @@ class ATO():
         self.n_products = len(self.J)
         self.n_machines = len(self.M)
         
-        self.n_scenarios = 100
+        self.n_scenarios = 1000
         self.prob = 1/self.n_scenarios
         
-        self.distr_mean = 4
-        self.distr_std = 2
+        self.distr_mean = 0
+        self.distr_std = 1
         
         self.model = gp.Model("ATO")
         
@@ -206,10 +206,10 @@ class ATO():
         self.model.optimize()
 
         if self.model.status == GRB.OPTIMAL:
-            print("\nOptimal Solution Found:")
-            print(self.x)
-            for v in self.model.getVars():
-                print(f'{v.varName} = {v.x}')
+            # print("\nOptimal Solution Found:")
+            # print(self.x)
+            # for v in self.model.getVars():
+            #     print(f'{v.varName} = {v.x}')
             print(self.model.ObjVal)
             return self.model.ObjVal
         return np.nan
@@ -359,13 +359,13 @@ plt.show()
 
 
 
-# ato = ATO()
-# ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=337517)
+ato = ATO()
+ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=337517)
 
 
 # Stability
 # while(stopping criteria)
-# ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=344788)
+ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=344788)
 #   if not stopping criteria
 #       ato.addScenarios()
 #       ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=337517)
