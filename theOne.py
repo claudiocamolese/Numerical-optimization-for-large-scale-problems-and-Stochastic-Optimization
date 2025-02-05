@@ -14,10 +14,12 @@ class SurfaceResponse():
         self.I = ['Stoffa', 'Cerniera', 'Bottone']
         self.J = ['Felpa', 'Jeans']
         self.M = ['M1']
-        self.C = np.array([7, 5, 8])
-        self.Lm = np.array([24])
+        self.C = np.array([11, 14, 10])
+        self.Lm = np.array([1000])
         self.Tim = np.array([[0.5, 1.33, 1.9]])
         self.Gij = np.array([[1,1,0], [1,1,1]])
+        
+        self.flag = True
         
         self.n_items = len(self.I)
         self.n_products = len(self.J)
@@ -27,10 +29,10 @@ class SurfaceResponse():
         self.prob = 1/self.n_scenarios
         
         self.distr_mean = 1
-        self.distr_std = 2
+        self.distr_std = 1
         
-        self.a = np.array([[5], [4]])
-        self.b = np.array([[0.1], [0.08]])
+        self.a = np.array([[23.5], [28.0]])
+        self.b = np.array(0.45)
         
         self.model = gp.Model("SurfaceResponse")
         
@@ -62,6 +64,7 @@ class SurfaceResponse():
             (self.x[i] >= 0 for i in range(self.n_items)), 
             name="feasible_space_on_x"
         )
+        
     
     def demandDistribution(self, P, seed=None):
         np.random.seed(seed)
@@ -84,8 +87,14 @@ class SurfaceResponse():
         np.random.seed(seed)
         demand = self.demandDistribution(P, seed)
         
+        if self.flag:
+            print('demand matrix')
+            self.flag = False
+            for row in demand:
+                print(' '.join(f"{val}" for val in row))
+        
         # Constraint 2: 
-        self.model.addConstrs(
+        constraint = self.model.addConstrs(
             (self.y[j, s] <= demand[j, s] for j in range(self.n_products) for s in range(self.n_scenarios)), 
             name="constraint_on_demand"
         )
@@ -98,6 +107,8 @@ class SurfaceResponse():
         )
     
         self.model.optimize()
+        
+        self.model.remove(constraint)
 
         if self.model.status == GRB.OPTIMAL:
             # print("\nOptimal Solution Found:")
@@ -220,7 +231,18 @@ for p1 in range(int(P[0][0]), int(P[0][1])+1):
             
         dict_res[p1, p2] = np.average(tmp)
 
-print(dict_res)
+rows = sorted(set(key[0] for key in dict_res.keys()))
+cols = sorted(set(key[1] for key in dict_res.keys()))
+
+# Crea la matrice
+matrix = []
+for row in rows:
+    matrix.append([dict_res.get((row, col), 0) for col in cols])
+
+# Stampa la matrice in modo formattato
+print('Guadagno')
+for row in matrix:
+    print(' '.join(f"{val:6.2f}" for val in row))
 
 
 effect_s = ((dict_res[P[0][1], P[1][1]] - dict_res[P[0][0], P[1][1]]) + (dict_res[P[0][1], P[1][0]] - dict_res[P[0][0], P[1][0]])) / 2 
@@ -249,11 +271,11 @@ for key, ele in dict_res.items():
 scaler = MinMaxScaler(feature_range=(-1, 1))
 
 X_normalized = scaler.fit_transform(X)
-print(X_normalized)
+print(X_normalized.shape)
 
 # Create and fit the Linear Regression model
 model = LinearRegression()
-model.fit(X_normalized, y)
+model.fit(X, y)
 
 # Get the model parameters
 slope = model.coef_        # Coefficient (slope)
@@ -281,8 +303,8 @@ else:
 # Optimize metamodel
 
 # Create mesh grid for x1 and x2 for surface visualization
-x1_vals = np.linspace(-1, 1, 100)
-x2_vals = np.linspace(-1, 1, 100)
+x1_vals = np.linspace(P[0][0], P[0][1], 100)
+x2_vals = np.linspace(P[1][0], P[1][1], 100)
 x1_grid, x2_grid = np.meshgrid(x1_vals, x2_vals)
 
 # Compute the response values for the mesh grid
@@ -294,17 +316,17 @@ def objective_function(x):
     return -response_function(x[0], x[1])
 
 # Initial guess for optimization
-initial_guess = [0, 0]
+initial_guess = [40, 50]
 
 # Perform optimization
-bnds = ((-1, 1), (-1,1))
+bnds = ((P[0][0], P[0][1]), (P[0][0],P[0][1]))
 result = minimize(objective_function, initial_guess, bounds=bnds)
 
 # Display the optimal solution
 optimal_x1, optimal_x2 = result.x
 optimal_response = response_function(optimal_x1, optimal_x2)
 
-optimalp1 = scaler.inverse_transform(np.array([[optimal_x1, optimal_x2, optimal_x1 * optimal_x2, optimal_x1*2, optimal_x2*2]]))
+optimalp1 = np.array([[optimal_x1, optimal_x2, optimal_x1 * optimal_x2, optimal_x1*2, optimal_x2*2]])
 
 print(f"Optimal s: {optimalp1[0,0]}")
 print(f"Optimal d: {optimalp1[0,1]}")
@@ -332,13 +354,13 @@ plt.show()
 
 
 
-ato = ATO()
-ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=337517)
+# ato = ATO()
+# ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=337517)
 
 
 # Stability
 # while(stopping criteria)
-#   ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=344788)
+# ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=344788)
 #   if not stopping criteria
 #       ato.addScenarios()
 #       ato.run_simulation([optimalp1[0,0], optimalp1[0,1]], seed=337517)
