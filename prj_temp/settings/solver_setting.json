@@ -1,0 +1,6 @@
+{
+    "nIndividual": 10,
+    "mutationProb": 0.01,
+    "nGeneration": 20,
+    "timeLimit": 300
+}
