@@ -13,11 +13,17 @@ k = 0;
 gradfk_norm = norm(gradfk);
 
 while k < kmax && gradfk_norm >= tolgrad
+%     if mod(k, 500) == 0
+%         disp(k)
+%         disp(fk)
+%         disp(gradfk_norm)
+%     end
     % Compute the Hessian
     Hk = Hessf(xk);
-    
+%     disp(k)
     % Ensure positive definiteness: compute tau_k
-    lambda_min = eigs(Hk,1,"smallestreal","MaxIterations",100000);                   % Minimum eigenvalue of the Hessian
+    lambda_min = eigs(Hk,1,"smallestreal","MaxIterations",100000);  % Minimum eigenvalue of the Hessian
+%     disp(k+1)
 %     disp(cond(Hk));
 %     disp(lambda_min);
     if lambda_min <= 0
@@ -31,15 +37,13 @@ while k < kmax && gradfk_norm >= tolgrad
 
 % Solve the linear syste   m Bk * pk = -gradfk
 
-%        pk = -Bk \ gradfk;
-%     
-    %preconditioning
-    L = ichol(Bk, struct('type', 'nofill')); % Precondizionatore
+       pk = -Bk \ gradfk;   
+%    disp(k+2)
 
-    % Risoluzione del sistema lineare con Preconditioned Conjugate Gradient (PCG)
-    tol = 1e-4;
-    maxIter = 100;
-    [pk,~] = pcg(Bk, -gradfk, tol, maxIter,L,L');
+%     L = ichol(Bk, struct('type', 'nofill')); % Precondizionatore
+%     tol = 1e-4;
+%     maxIter = 100;
+%     [pk,~] = pcg(Bk, -gradfk, tol, maxIter,L,L');
 
 
     % Reset alpha for backtracking
@@ -51,7 +55,7 @@ while k < kmax && gradfk_norm >= tolgrad
     
     c1_gradfk_pk = c1 * gradfk' * pk;
     bt = 0;
-    
+%     disp(k+3)
     % Backtracking strategy
     while bt < btmax && fnew > farmijo(fk, alpha, c1_gradfk_pk)
         alpha = rho * alpha;  % Reduce step size
@@ -59,7 +63,11 @@ while k < kmax && gradfk_norm >= tolgrad
         fnew = f(xnew);
         bt = bt + 1;
     end
-    
+%     disp(k+4)
+%     if bt ~= 0
+%         disp(bt)
+%     end
+
     if bt == btmax && fnew > farmijo(fk, alpha, c1_gradfk_pk)
         break;
     end

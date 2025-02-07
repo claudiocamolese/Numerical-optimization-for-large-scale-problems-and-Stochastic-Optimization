@@ -7,26 +7,33 @@ clc
 load('Assignment\Truncated_NM\test_functions2.mat')
 
 %% Parameters
-tolgrad = 1e-4;
-kmax= 10000;
+tolgrad = 1e-6;
+kmax= 100;
 delta = 1e-4;
 rho = 0.5;
-btmax=10;
+c1=1e-4;
 random_seed = 337517;
 rng(random_seed)
 % 
 % f = @(x) extended_rosenbrock(x);
 % grad_f = @(x) extended_rosenbrock_grad(x);
 % Hess_f = @(x) extended_rosenbrock_hessian(x);
-f = @(x) extendedFreudensteinRoth(x);
-grad_f = @(x) extended_freudenstein_grad(x);
-Hess_f = @(x) extended_freudenstein_hessian(x);
+% f = @(x) extendedFreudensteinRoth(x);
+% grad_f = @(x) extended_freudenstein_grad(x);
+% Hess_f = @(x) extended_freudenstein_hessian(x);
 % f = @(x) compute_F_ascher(x);
 % grad_f = @(x) compute_F_ascher_grad(x);
 % Hess_f = @(x) compute_F_ascher_hessian(x);
 % f = @(x) problem75(x);
 % grad_f = @(x) problem75_grad(x);
 % Hess_f = @(x) problem75_hessian(x);
+% f = @(x) problem76_newton(x);
+% grad_f = @(x) problem76_grad(x);
+% Hess_f = @(x) problem76_hessian(x);
+ f = @(x) problem76_newton(x);
+grad_f = @(x) findiff_gradf(f,x,1e-14,"fw");
+Hess_f = @(x) findiff_Hess(f,x,sqrt(1e-14));
+
 % 
 % for n = logspace(3, 5, 3) 
 %     disp("------    ------")
@@ -34,32 +41,35 @@ Hess_f = @(x) extended_freudenstein_hessian(x);
     tic
 %     x0 = ones(1000, 1);
 %     x0(1:2:end) = -1.2;
-    x0 = 60*ones(10000, 1);
-    x0(1:2:end) = 90;
+%     x0 = 60*ones(10, 1);
+%     x0(1:2:end) = 90;
 % x0 = -1.2*ones(10000, 1);
 % x0(end) = -1;
+x0 = 2* ones(10, 1);
 
     % 10 new starting points
-%     random_points = x0 + (rand(1000, 10) * 2 - 1);
+random_points = x0 + (rand(10, 10) * 2 - 1);
 
 %% RUN THE MODIFIED NEWTON METHOD WITH BACKTRACK
 
 disp('**** STEEPEST DESCENT ("SIMPLE"): START *****')
 
-% for i = 1:10
+for i = 1:10
     %  random_points(:, i)
 [xk, fk, gradfk_norm, k] = ...
-    modified_newton_bcktrck(x0, f, grad_f, Hess_f, kmax, tolgrad, c1, rho, btmax, delta);
+    modified_newton_bcktrck(random_points(:,i), f, grad_f, Hess_f, kmax, tolgrad, c1, rho, btmax, delta);
 disp('**** STEEPEST DESCENT: FINISHED *****')
 disp('**** STEEPEST DESCENT: RESULTS *****')
 disp('')
 disp(['xk: ', mat2str(xk), ' (actual minimum: [0; 0]);'])
 disp(['f(xk): ', num2str(fk), ' (actual min. value: 0);'])
 disp(['N. of Iterations: ', num2str(k),'/',num2str(kmax), ';'])
+disp(gradfk_norm)
 disp('')
 
+
 toc
-%  end
+ end
 
 %% PLOTS (BACKTRACK)
 % 

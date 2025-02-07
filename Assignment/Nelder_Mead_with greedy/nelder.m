@@ -6,7 +6,8 @@ function [xk, fk, execution_time, k] = nelder(x, n, rho, chi, gamma, sigma)
     %f = @(x) extendedFreudensteinRoth(x);
     % f = @(x) brent_function(x);
 %     f = @(x) compute_F_ascher(x);
-    f = @(x) problem75(x);
+%     f = @(x) problem75(x);
+f=@(x) problem76(x);
 
     if n==2
         figure
