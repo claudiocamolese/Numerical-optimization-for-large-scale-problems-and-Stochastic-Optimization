@@ -2,9 +2,11 @@ function [xk, fk, execution_time, k] = nelder(x, n, rho, chi, gamma, sigma)
     
   % Funzione obiettivo da minimizzare (modificabile a piacere)
     % f = @(x) sum(100 * (x(:, 2:end) - x(:, 1:end-1).^2).^2 + (1 - x(:, 1:end-1)).^2, 2); % Rosenbrock
-    % f = @(x) extended_rosenbrock(x);
-    f = @(x) extendedFreudensteinRoth(x);
+%      f = @(x) extended_rosenbrock(x);
+    %f = @(x) extendedFreudensteinRoth(x);
     % f = @(x) brent_function(x);
+%     f = @(x) compute_F_ascher(x);
+    f = @(x) problem75(x);
 
     if n==2
         figure

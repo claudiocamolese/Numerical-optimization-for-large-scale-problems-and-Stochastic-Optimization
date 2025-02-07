@@ -7,28 +7,48 @@ clc
 load('Assignment\Truncated_NM\test_functions2.mat')
 
 %% Parameters
+tolgrad = 1e-4;
+kmax= 10000;
 delta = 1e-4;
 rho = 0.5;
+btmax=10;
 random_seed = 337517;
-
-f = @(x) F(x);
-grad_f = @(x) gradf(x);
-Hess_f = @(x) Hessf(x);
-
+rng(random_seed)
+% 
+% f = @(x) extended_rosenbrock(x);
+% grad_f = @(x) extended_rosenbrock_grad(x);
+% Hess_f = @(x) extended_rosenbrock_hessian(x);
+f = @(x) extendedFreudensteinRoth(x);
+grad_f = @(x) extended_freudenstein_grad(x);
+Hess_f = @(x) extended_freudenstein_hessian(x);
+% f = @(x) compute_F_ascher(x);
+% grad_f = @(x) compute_F_ascher_grad(x);
+% Hess_f = @(x) compute_F_ascher_hessian(x);
+% f = @(x) problem75(x);
+% grad_f = @(x) problem75_grad(x);
+% Hess_f = @(x) problem75_hessian(x);
+% 
 % for n = logspace(3, 5, 3) 
-    n = 10000;
-    x0 = ones(n, 1);
-    x0(1:2:end) = -1.2;
+%     disp("------    ------")
+%     disp(n)
+    tic
+%     x0 = ones(1000, 1);
+%     x0(1:2:end) = -1.2;
+    x0 = 60*ones(10000, 1);
+    x0(1:2:end) = 90;
+% x0 = -1.2*ones(10000, 1);
+% x0(end) = -1;
 
     % 10 new starting points
-    % random_points = x0 + (rand(n, 10) * 2 - 1);
+%     random_points = x0 + (rand(1000, 10) * 2 - 1);
 
 %% RUN THE MODIFIED NEWTON METHOD WITH BACKTRACK
 
 disp('**** STEEPEST DESCENT ("SIMPLE"): START *****')
 
 % for i = 1:10
-[xk, fk, gradfk_norm, k, xseq, btseq] = ...
+    %  random_points(:, i)
+[xk, fk, gradfk_norm, k] = ...
     modified_newton_bcktrck(x0, f, grad_f, Hess_f, kmax, tolgrad, c1, rho, btmax, delta);
 disp('**** STEEPEST DESCENT: FINISHED *****')
 disp('**** STEEPEST DESCENT: RESULTS *****')
@@ -38,7 +58,8 @@ disp(['f(xk): ', num2str(fk), ' (actual min. value: 0);'])
 disp(['N. of Iterations: ', num2str(k),'/',num2str(kmax), ';'])
 disp('')
 
-% end
+toc
+%  end
 
 %% PLOTS (BACKTRACK)
 % 

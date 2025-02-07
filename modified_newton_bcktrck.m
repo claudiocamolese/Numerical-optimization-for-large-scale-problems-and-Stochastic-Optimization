@@ -1,22 +1,10 @@
-function [xk, fk, gradfk_norm, k, xseq, btseq] = modified_newton_bcktrck(x0, f, gradf, Hessf, kmax, tolgrad, c1, rho, btmax, delta)
-%
-% Function that performs the Modified Newton optimization method,
-% using backtracking strategy for step-length selection.
-%
-% INPUTS:
-% x0, f, gradf, Hessf, kmax, tolgrad, c1, rho, btmax: same as in newton_bcktrck
-% delta: threshold for ensuring positive definiteness (small positive value)
-%
-% OUTPUTS:
-% xk, fk, gradfk_norm, k, xseq, btseq: same as in newton_bcktrck
-%
+function [xk, fk, gradfk_norm, k] = modified_newton_bcktrck(x0, f, gradf, Hessf, kmax, tolgrad, c1, rho, btmax, delta)
 
-% Function handle for the Armijo condition
 farmijo = @(fk, alpha, c1_gradfk_pk) fk + alpha * c1_gradfk_pk;
 
 % Initializations
-xseq = zeros(length(x0), kmax);
-btseq = zeros(1, kmax);
+% xseq = zeros(length(x0), kmax);
+% btseq = zeros(1, kmax);
 
 xk = x0;
 fk = f(xk);
@@ -29,17 +17,31 @@ while k < kmax && gradfk_norm >= tolgrad
     Hk = Hessf(xk);
     
     % Ensure positive definiteness: compute tau_k
-    lambda_min = min(eig(Hk));  % Minimum eigenvalue of the Hessian
+    lambda_min = eigs(Hk,1,"smallestreal","MaxIterations",100000);                   % Minimum eigenvalue of the Hessian
+%     disp(cond(Hk));
+%     disp(lambda_min);
     if lambda_min <= 0
         tau_k = max(0, delta - lambda_min);  % Correction to make Bk positive definite
-        Bk = Hk + tau_k * eye(length(x0));
+        Bk = Hk + tau_k * speye(length(x0));
+%         disp(tau_k)
     else
         Bk = Hk;
     end
     
-    % Solve the linear system Bk * pk = -gradfk
-    pk = -Bk \ gradfk;
-    
+
+% Solve the linear syste   m Bk * pk = -gradfk
+
+%        pk = -Bk \ gradfk;
+%     
+    %preconditioning
+    L = ichol(Bk, struct('type', 'nofill')); % Precondizionatore
+
+    % Risoluzione del sistema lineare con Preconditioned Conjugate Gradient (PCG)
+    tol = 1e-4;
+    maxIter = 100;
+    [pk,~] = pcg(Bk, -gradfk, tol, maxIter,L,L');
+
+
     % Reset alpha for backtracking
     alpha = 1;
     
@@ -67,15 +69,19 @@ while k < kmax && gradfk_norm >= tolgrad
     fk = fnew;
     gradfk = gradf(xk);
     gradfk_norm = norm(gradfk);
-    
+    if mod(k, 500) == 0
+        disp(k)
+        disp(fk)
+        disp(gradfk_norm)
+    end
     k = k + 1;
-    xseq(:, k) = xk;
-    btseq(k) = bt;
+%     xseq(:, k) = xk;
+%     btseq(k) = bt;
 end
 
 % Adjust sequence sizes
-xseq = xseq(:, 1:k);
-btseq = btseq(1:k);
-xseq = [x0, xseq];  % Add initial guess to sequence
+% xseq = xseq(:, 1:k);
+% btseq = btseq(1:k);
+% xseq = [x0, xseq];  % Add initial guess to sequence
 
 end
