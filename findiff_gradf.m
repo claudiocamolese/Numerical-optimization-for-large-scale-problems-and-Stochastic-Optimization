@@ -1,24 +1,7 @@
 function [gradfx] = findiff_gradf(f, x, h, type)
-%
-% function [gradf] = findiff_grad(f, x, h, type)
-%
-% Function that approximate the gradient of f in x (column vector) with the
-% finite difference (forward/centered) method.
-%
-% INPUTS:
-% f = function handle that describes a function R^n->R;
-% x = n-dimensional column vector;
-% h = the h used for the finite difference computation of gradf
-% type = 'fw' or 'c' for choosing the forward/centered finite difference
-% computation of the gradient.
-%
-% OUTPUTS:
-% gradfx = column vector (same size of x) corresponding to the approximation
-% of the gradient of f in x.
 
 
 gradfx = zeros(size(x));
-
 
 switch type
     case 'fw'

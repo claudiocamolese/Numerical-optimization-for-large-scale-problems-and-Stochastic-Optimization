@@ -1,6 +1,6 @@
 function H = problem75_hessian(x)
     n = size(x, 1); % Numero di dimensioni
-    h = 1 / (n + 1); % Step size
+%     h = 1 / (n + 1); % Step size
     vectDiag0 = zeros(1,n);
     vectDiag1 = zeros(1,n-1);
     
