@@ -21,14 +21,15 @@ while k < kmax && gradfk_norm >= tolgrad
     
     Hk = Hessf(xk);
    
-    lambda_min = eigs(Hk,1,"smallestreal", "Tolerance",1e-6, "MaxIterations",100000);  
+%     lambda_min = eigs(Hk,1,"smallestreal", "Tolerance",1e-6, "MaxIterations",100000);  
+    lambda_min = eigs(Hk,1,'smallestabs'); 
+    
     if lambda_min <= 0
         tau_k = max(0, delta - lambda_min);
         Bk = Hk + tau_k * speye(length(x0));
     else
         Bk = Hk;
     end
-    
 
 
 %        pk = -Bk \ gradfk;   
@@ -41,7 +42,6 @@ while k < kmax && gradfk_norm >= tolgrad
 
     alpha = 1;
     
- 
     xnew = xk + alpha * pk;
     fnew = f(xnew);
     
@@ -63,11 +63,11 @@ while k < kmax && gradfk_norm >= tolgrad
     fk = fnew;
     gradfk = gradf(xk);
     gradfk_norm = norm(gradfk);
-    if mod(k, 50) == 0
-        disp(k)
-        disp(fk)
-        disp(gradfk_norm)
-    end
+%     if mod(k, 50) == 0
+%         disp(k)
+%         disp(fk)
+%         disp(gradfk_norm)
+%     end
     k = k + 1;
 %     xseq(:, k) = xk;
 %     btseq(k) = bt;

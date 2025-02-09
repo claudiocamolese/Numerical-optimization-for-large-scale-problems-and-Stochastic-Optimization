@@ -6,7 +6,7 @@ function H = problem75_hessian(x)
     
     for k = 1:n
         if k == 1
-            vectDiag0(k) = 10*k+1;
+            vectDiag0(k) = (10*k)+1;
             vectDiag1(k) = -10*k;
         elseif k == n
             vectDiag0(k) = 10*k;
